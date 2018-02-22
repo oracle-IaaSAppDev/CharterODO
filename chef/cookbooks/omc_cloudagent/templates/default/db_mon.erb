@@ -1,0 +1,27 @@
+{
+	"entities": [{
+		"name": "<%= @dbname %>",
+		"type": "omc_oracle_db",
+		"displayName": "<%= @dbname %>",
+		"timezoneRegion": "<%= @timezone %>",
+		"credentialRefs": ["SQLCreds"],
+		"properties": {
+			"host_name": {
+				"displayName": "host_name",
+				"value": "<%= node[:fqdn] %>"
+			},
+			"port": {
+				"displayName": "port",
+				"value": "<%= @port %>"
+			},
+			"sid": {
+				"displayName": "sid",
+				"value": "<%= @sid %>"
+			},
+			"capability": {
+				"displayName": "capability",
+				"value": "monitoring"
+			}
+		}
+	}]
+}

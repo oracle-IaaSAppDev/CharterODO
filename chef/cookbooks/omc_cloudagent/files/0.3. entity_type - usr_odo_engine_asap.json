@@ -1,0 +1,12 @@
+https://uscgbuodotrial.itom.management.us2.oraclecloud.com/serviceapi/tm-metadata/metypes
+
+{
+    "entityType": "usr_odo_engine_asap",
+    "category": "Applications",
+    "typeDisplayName": "ODO Engine - ASAP",
+    "parentTargetType": "omc_entity",
+    "meClass": "TARGET",
+    "propertyTypeList": [
+    ],
+    "tenantSpecific": true
+}

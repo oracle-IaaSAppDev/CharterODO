@@ -1,0 +1,23 @@
+{
+    "entities":
+        [
+           {
+             "name": "<%=@hostname%>.localdomain",
+             "type": "<%=@hosttype%>",
+             "properties":{
+               "capability": {
+                 "displayName": "capability",
+                 "value": "monitoring"
+               },
+               "orcl_usr_gtp1": {
+                 "displayName" : "Campaign",
+                 "value": "<%= @campaign %>"
+               },
+               "tags":{
+                 "campaign" : "<%= @campaign %>"
+               }
+            }
+          }
+        ]
+}
+
