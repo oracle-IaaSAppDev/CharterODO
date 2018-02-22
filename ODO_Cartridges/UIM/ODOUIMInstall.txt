@@ -1,0 +1,69 @@
+$JAVA_HOME
+/u01/app/oracle/jdk1.6.0_151
+
+From Oracle Software Delivery Cloud Download:
+For Linux x86-64: 
+	Oracle Fusion Middleware Repository Creation Utility 11g (11.1.1.6.0) for Linux x86 - V29674-01 
+
+unzip V29674-01.zip 
+mv rcuHome/ /u01/app/oracle/product
+cd /u01/app/oracle/product/rcuHome
+./bin/rcu
+
+The PatchSet-UnifiedInventoryManagement-7.2.2.2.0-linux.zip install is not a full install on the older releases.
+So I uploaded UnifiedInventoryManagement-7.2.2.2.0-linux.zip to /home/opc
+sudo -s
+chown oracle:oinstall UnifiedInventoryManagement-7.2.2.2.0-linux.zip
+
+cp UnifiedInventoryManagement-7.2.2.2.0-linux.zip /u01/app
+unzip UnifiedInventoryManagement-7.2.2.2.0-linux.zip 
+
+Weblogic: 
+weblogic/Password123
+
+UIM Schema:
+uim722/Password123
+
+Cartridge Management:
+cmwsuser/Password123
+
+UIM User:
+uimuser/Password123
+
+Upload aspectj1-6.11.jar to /home/opc
+sudo -s
+chown oracle:oinstall aspecjt1-6.11.jar
+mv aspecjt1-6.11.jar /home/oracle
+
+java -jar aspectj-1.6.11.jar 
+cd /home/oracle/aspectj1.6/lib
+chmod 755 aspectjweaver.jar
+
+cp aspectjweaver.jar /u01/app/oracle/product/fmw11g/user_projects/domains/odo72/UIM/lib
+update startuim alias to ./startUim.sh
+
+//Deploy Cartridges
+cd /home/oracle/opt/OracleCommunications/CartridgeDeployerClients/CartridgeDeployer
+./runCartridgeDeployer.sh
+
+Cartridges are here:
+/u01/app/oracle/product/fmw11g/user_projects/domains/odo72/UIM/cartridges/base
+
+Deploy
+ora_uim_basemeasurements
+ora_uim_basextpts
+ora_uim_baserulesets
+ora_uim_basespecifications
+ora_uim_basetechnologies
+
+Host: 10.0.0.3
+Port: 7001
+cmwsuser/Password123
+
+No SSL
+
+Select UIM_MS1
+
+
+
+Build cartridges using Eclipse oepe-all-in-one-juno-12.1.1.1.0.201207241647-win32-x86_64 and Studio 7.2.2.  Upload to UIM Compute instance and perform deploy as above.
