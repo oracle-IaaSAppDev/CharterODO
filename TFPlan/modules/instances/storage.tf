@@ -26,17 +26,5 @@ resource "baremetal_core_volume_attachment" "TFBlock0Attach" {
       private_key = "${file(var.ssh_private_key)}"
     }
   }
-  provisioner "remote-exec" {
-    when = "destroy"
-    inline = [
-      "sudo /home/oracle/scripts/odo/kill.sh"
-    ]
-    connection {
-      host = "${baremetal_core_instance.TFInstance.*.public_ip[count.index]}"
-      type = "ssh"
-      user = "opc"
-      private_key = "${file(var.ssh_private_key)}"
-    }
-  }
 }
 

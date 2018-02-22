@@ -10,8 +10,25 @@ resource "baremetal_core_instance" "TFInstance" {
   metadata {
     ssh_authorized_keys = "${var.ssh_public_key}"
   }
-
 }
+
+resource "null_resource" "omc-destroy" {
+  count = "${var.compute_scale}"
+  depends_on = ["baremetal_core_instance.TFInstance"]
+  provisioner "remote-exec" {
+    when = "destroy"
+    inline = [
+      "sudo /home/oracle/scripts/odo/kill.sh"
+    ]
+    connection {
+      host = "${baremetal_core_instance.TFInstance.*.public_ip[count.index]}"
+      type = "ssh"
+      user = "opc"
+      private_key = "${file(var.ssh_private_key)}"
+    }
+  }
+} 
+
 
 resource "baremetal_load_balancer_backend" "lb-be" {
     count = "${var.compute_scale}"
