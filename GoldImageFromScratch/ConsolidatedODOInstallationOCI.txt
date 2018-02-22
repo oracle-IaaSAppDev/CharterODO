@@ -1,0 +1,1634 @@
+STARTING POINT
+
+VM and Block Storage have been created. Block Storage is attached to VM. See ODO Whitepaper for details.
+
+ENTROPY
+
+sudo -s
+rngd -r /dev/urandom -o /dev/random -t 1
+
+ASAP 32-BIT LIBRARIES
+
+sudo -s
+
+yum install compat-libstdc++-33.i686
+yum install compat-openldap.i686
+yum install glibc-devel.i686
+yum install ksh
+yum install libX11.i686
+yum install libXext.i686
+yum install libXi.i686
+yum install libXrender.i686
+yum install libXtst.i686
+yum install libaio-devel.i686
+yum install libaio.i686
+yum install libstdc++-devel.i686
+yum install openssl098e.i686
+yum install sssd-client.i686
+
+--> reboot
+
+DATABASE PRE-INSTALL
+
+As root
+	yum install oracle-rdbms-server-11gR2-preinstall
+
+/sbin/sysctl -a | grep fs.suid_dumpable
+	fs.suid_dumpable = 0
+
+/sbin/sysctl -a | grep fs.aio-max-nr
+	fs.aio-max-nr = 1048576
+
+/sbin/sysctl -a | grep fs.file-max
+	fs.file-max = 6815744
+
+/sbin/sysctl -a | grep kernel.shmall
+	kernel.shmall = 4294967296
+
+/sbin/sysctl -a | grep kernel.shmmax
+	kernel.shmmax = 4398046511104
+
+/sbin/sysctl -a | grep kernel.shmmni
+	kernel.shmmni = 4096
+
+/sbin/sysctl -a | grep kernel.sem
+	kernel.sem = 250	32000	100	128
+
+/sbin/sysctl -a | grep net.ipv4.ip_local_port_range
+	net.ipv4.ip_local_port_range = 9000	65500
+
+/sbin/sysctl -a | grep net.core.rmem_default
+	net.core.rmem_default = 262144
+
+/sbin/sysctl -a | grep net.core.rmem_max
+	net.core.rmem_max = 4194304
+
+/sbin/sysctl -a | grep net.core.wmem_default
+	net.core.wmem_default = 262144
+
+/sbin/sysctl -a | grep net.core.wmem_max
+	net.core.wmem_max = 1048576
+
+vi /etc/security/limits.conf
+	oracle   soft   nofile   4096
+
+vi /etc/security/limits.d/90-nproc.conf 
+	*          -    nproc     16384
+
+sudo -s
+
+groupadd -g 501 oinstall
+groupadd -g 502 dba
+groupadd -g 503 oper
+groupadd -g 504 asmadmin
+groupadd -g 506 asmdba
+groupadd -g 505 asmoper
+
+useradd -u 502 -g oinstall -G dba,asmdba,oper oracle
+
+passwd oracle
+	Password123
+	
+usermod -G dba,asmdba,oper oracle
+
+mkdir -p /u01/app/oracle/product/11.2.0/db_1
+chown -R oracle:oinstall /u01
+chmod -R 775 /u01
+
+As oracle user
+
+vi .bash_profile
+
+# Oracle Settings
+TMP=/tmp; export TMP
+TMPDIR=$TMP; export TMPDIR
+
+ORACLE_HOSTNAME=odo72.localdomain; export ORACLE_HOSTNAME
+ORACLE_UNQNAME=DB11G; export ORACLE_UNQNAME
+ORACLE_BASE=/u01/app/oracle; export ORACLE_BASE
+ORACLE_HOME=$ORACLE_BASE/product/11.2.0/db_1; export ORACLE_HOME
+#ORACLE_HOME=$ORACLE_BASE/product/11.2.0/client32; export ORACLE_HOME
+ORACLE_SID=DB11G; export ORACLE_SID
+
+PATH=/usr/sbin:$PATH; export PATH
+PATH=$ORACLE_HOME/bin:$PATH; export PATH
+
+LD_LIBRARY_PATH=$ORACLE_HOME/lib:/lib:/usr/lib; export LD_LIBRARY_PATH
+CLASSPATH=$ORACLE_HOME/jlib:$ORACLE_HOME/rdbms/jlib; export CLASSPATH
+
+export MW_HOME=/u01/app/oracle/product/fmw11g
+export WLS_HOME=$MW_HOME/wlserver_10.3
+export WL_HOME=$WLS_HOME
+export JAVA_HOME=/u01/app/oracle/jdk1.6.0_151
+export PATH=$JAVA_HOME/bin:$PATH
+
+vi .bashrc
+
+# .bashrc
+
+# Source global definitions
+if [ -f /etc/bashrc ]; then
+        . /etc/bashrc
+fi
+
+# User specific aliases and functions
+alias cddomain="cd /u01/app/oracle/product/fmw11g/user_projects/domains/odo72"
+alias cdaslogs="cd /u01/app/oracle/product/fmw11g/user_projects/domains/odo72/servers/AdminServer/logs"
+alias cdosmlogs="cd /u01/app/oracle/product/fmw11g/user_projects/domains/odo72/servers/OSM_MS1/logs"
+alias cdasaplogs="cd /u01/app/oracle/product/fmw11g/user_projects/domains/odo72/servers/ASAP_MS1/logs"
+alias startas="nohup /u01/app/oracle/product/fmw11g/user_projects/domains/odo72/bin/startWebLogic.sh > /u01/app/oracle/product/fmw11g/user_projects/domains/odo72/servers/AdminServer/logs/AdminServer.out 2>&1 &"
+alias stoposm="/u01/app/oracle/product/fmw11g/user_projects/domains/odo72/bin/stopManagedWebLogic.sh \"OSM_MS1\""
+alias stopasap="/u01/app/oracle/product/fmw11g/user_projects/domains/odo72/bin/stopManagedWebLogic.sh \"ASAP_MS1\""
+alias cdasapcore='cd /home/oracle/ASAP72061'
+alias asapcoreenv='. /home/oracle/ASAP72061/Environment_Profile'
+alias startasapcore='start_asap_sys -d'
+alias stopasapcore='stop_asap_sys -d'
+
+sudo -s
+
+yum install compat-libstdc++-33.x86_64      
+yum install libstdc++-devel.x86_64       
+yum install libaio-devel.x86_64         
+yum install numactl-devel.x86_64         
+yum install elfutils-libelf-devel.x86_64 
+yum install terminus-fonts
+yum install glib-devel-2.12.x86_64
+yum install glibc-devel.x86_64
+
+ASAP KERNEL PARAMETERS
+
+Confirm these settings, adjust as required (must be greather than or equal to):
+
+semmsl: 250
+semmns: 3200
+semopm: 32
+semmni: 128
+kernel.sem = 250 3200 32 128
+shmall: 268435456
+shmmax: 4294967295
+msgmax: 65536
+msgmnb: 65536
+msgmni: 2878
+threads_max: 131072
+file-nr: 8192 0 327679
+queues_max: 256
+msgsize_max: 8192
+msg_max: 32767
+
+--> reboot
+
+WEBLOGIC AND APPLICATION INSTALLERS
+
+As opc user, after downloading all required installers to /home/opc/Downloads/Installers in the following sub-directories:
+
+	ADFPatchSet5 (patch 13517051)
+	ASAP7.2.0.6.1 
+	Coherence3.7.1.13 (patch 19485862)
+	Database (patch 13390677)
+	JBossCache-1.4.1.SP12
+	JDK16_151 (patch 25474980)
+	OSM7.2.2.4.16
+	saxonb9-1-0-7j
+	WLS10.3.6.0.13 (patch 21984589)
+
+chown -R oracle:oinstall *
+mv * /home/oracle/Downloads/Installers
+
+mkdir -p /u01/app/oracle/product/fmw11g
+mkdir -p /u01/app/oracle/config/domains
+mkdir -p /u01/app/oracle/config/applications
+mkdir -p /u01/app/oracle/product/11.2.0/db_1
+chown -R oracle:oinstall /u01
+chmod -R 775 /u01/app/oracle/product/fmw11g
+chmod -R 775 /u01/app/oracle/config
+
+DATABASE INSTALL
+
+cd /home/oracle/Downloads/Installers/Database
+unzip p13390677_112040_Linux-x86-64_1of7.zip
+unzip p13390677_112040_Linux-x86-64_2of7.zip
+
+su oracle
+cd
+source .bash_profile
+
+cd /home/oracle/Downloads/Installers/Database/database
+
+./runInstaller
+
+	Uncheck updates
+	Create and configure a database
+	Server Class
+	Single instance database installation
+	Typical install
+	/u01/app/oracle
+	/u01/app/oracle/product/11.2.0/db_1
+	File System
+	/u01/app/oracle/oradata
+	Enterprise Edition
+	oinstall
+	DB11G.WORLD
+	Password123
+	/u01/app/oraInventory
+	oinstall
+	Ignore Swap Size warning
+
+/u01/app/oraInventory/orainstRoot.sh
+/u01/app/oracle/product/11.2.0/db_1/root.sh
+
+su oracle
+cd
+source .bash_profile
+
+vi /etc/oratab
+	DB11G:/u01/app/oracle/product/11.2.0/db_1:Y
+dbstart $ORACLE_HOME
+
+sqlplus sys/Password123 as sysdba
+	alter profile DEFAULT limit password_life_time UNLIMITED;
+
+	
+JAVA INSTALLATION
+
+su oracle
+source .bash_profile
+	
+cd /home/oracle/Downloads/Installers/JDK16_151
+unzip p25474980_160151_Linux-x86-64.zip 
+
+./jdk-6u151-linux-x64.bin
+mv jdk1.6.0_151 /u01/app/oracle/
+
+java -version
+	java version "1.6.0_151"
+	
+MIDDLEWARE INSTALLATION
+
+cd /home/oracle/Downloads/Installers/WLS10.3.6.0.13
+unzip V29856-01.zip
+java -Xmx2046m -jar wls1036_generic.jar
+	/u01/app/oracle/product/fmw11g
+
+cd /home/oracle/Downloads/Installers/ADFPatchSet5
+unzip p13517051_111160_Generic.zip
+cd Disk1
+./runInstaller
+	/u01/app/oracle/jdk1.6.0_151
+
+cd /u01/app/oracle/product/fmw11g/utils/bsu
+mkdir cache_dir
+cd cache_dir
+
+unzip /home/oracle/Downloads/Installers/WLS10.3.6.0.13/p21984589_1036_Generic.zip 
+
+cd /u01/app/oracle/product/fmw11g/utils/bsu
+
+vi bsu.sh
+	MEM_ARGS="-Xms256m -Xmx2048m"
+
+./bsu.sh -verbose -install -patch_download_dir=/u01/app/oracle/product/fmw11g/utils/bsu/cache_dir -patchlist=S8C2 -prod_dir=/u01/app/oracle/product/fmw11g/wlserver_10.3
+	Result: Success
+	
+cd $MW_HOME/utils/quickstart/
+./quickstart.sh
+	Create a new WebLogic domain
+	Generate a domain...
+		Basic WebLogic Server Domain - 10.3.6.0 [wlserver_10_3]*
+		Oracle Enterprise Manager  - 11.1.1.0 [oracle_common]
+		Oracle JRF - 11.1.1.0 [oracle_common]
+	odo72
+	/u01/app/oracle/product/fmw11g/user_projects/domains
+	/u01/app/oracle/product/fmw11g/user_projects/applications
+	weblogic
+		Password123
+	Production Mode
+	Administration Server
+	Managed Servers, Clusters and Machines
+	Deployments and Services
+	AdminServer
+	odo72.localdomain
+	7001
+	SSL enabled
+	7002
+	OSM_MS1 odo72.localdomain 8001 8002 SSL enabled
+	ASAP_MS1 odo72.localdomain 9001 9002 SSL enabled
+	No clusters
+	No machines
+	For each managed server, Select All
+	For each managed server, Select All
+	
+	Domain Location: /u01/app/oracle/product/fmw11g/user_projects/domains/odo72
+	Admin Server URL: http://odo72.localdomain:7001 , https://odo72.localdomain:7002
+	
+Reboot
+
+su oracle
+source .bash_profile
+
+dbstart $ORACLE_HOME
+
+cd /u01/app/oracle/product/fmw11g/user_projects/domains/odo72
+
+./startWebLogic.sh
+	weblogic
+	Password123
+
+alias startas="/u01/app/oracle/product/fmw11g/user_projects/domains/odo72/bin/startWebLogic.sh"
+
+cd /u01/app/oracle/product/fmw11g/user_projects/domains/odo72/servers/AdminServer
+	mkdir security
+	cd security
+	vi boot.properties
+	username=weblogic
+	password=Password123
+	startas
+cd /u01/app/oracle/product/fmw11g/user_projects/domains/odo72/servers/OSM_MS1
+	mkdir security
+	cd security
+	vi boot.properties
+	username=weblogic
+	password=Password123
+	startosm
+cd /u01/app/oracle/product/fmw11g/user_projects/domains/odo72/servers/ASAP_MS1
+	mkdir security
+	cd security
+	vi boot.properties
+	username=weblogic
+	password=Password123
+	startasap
+
+cddomain
+cd bin
+gedit setDomainEnv.sh
+
+if [ "${SERVER_NAME}" = "ASAP_MS1" ] ; then
+	echo "##### ASAP_MS1 #####"
+		USER_MEM_ARGS="-Xms4g -Xmx4g -Xmn1g -XX:MaxPermSize=1g -XX:PermSize=1g -XX:SurvivorRatio=3 -XX:TargetSurvivorRatio=70 -XX:+UseParallelOldGC -XX:ParallelGCThreads=3 -XX:-UseAdaptiveSizePolicy -XX:+UseCompressedOops -XX:+DisableExplicitGC -verbose:gc -XX:+PrintTenuringDistribution -XX:+PrintGCTimeStamps -XX:+PrintGCDateStamps -XX:+PrintGCDetails -XX:+PrintAdaptiveSizePolicy -XX:+AlwaysPreTouch -Xloggc:/u01/app/oracle/product/fmw11g/user_projects/domains/odo72/servers/ASAP_MS1/logs/GC_ASAP_MS1.log"
+else
+	if [ "${SERVER_NAME}" = "OSM_MS1" ] ; then
+		echo "##### OSM_MS1 #####"
+		USER_MEM_ARGS="-Xms17g -Xmx17g -Xmn7g -XX:MaxPermSize=1g -XX:PermSize=1g -XX:SurvivorRatio=3 -XX:TargetSurvivorRatio=70 -XX:+UseParallelOldGC -XX:ParallelGCThreads=10 -XX:-UseAdaptiveSizePolicy -XX:CodeCacheMinimumFreeSpace=16m -XX:ReservedCodeCacheSize=256m -XX:+UseCompressedOops -Djava.net.preferIPv4Stack=true -Dmslv.oms.config=/u01/app/oracle/product/fmw11g/user_projects/domains/odo72/oms-config.xml -Djava.io.tmpdir=/u01/app/oracle/product/fmw11g/user_projects/domains/odo72/tmp -Dweblogic.SAFTXTimeout=30 -Dweblogic.jms.saf.RefreshInterval=300000 -Dweblogic.MaxMessageSize=40000000 -Doracle.communications.ordermanagement.orchestration.generation.model.ConcurrencyLevel=3 -Doracle.communications.ordermanagement.rule.k.ConcurrencyLevel=3 -XX:+ParallelRefProcEnabled -XX:+DisableExplicitGC -verbose:gc -XX:+PrintTenuringDistribution -XX:+PrintGCTimeStamps -XX:+PrintGCDateStamps -XX:+PrintGCDetails -XX:+PrintAdaptiveSizePolicy -XX:+AlwaysPreTouch -Xloggc:/u01/app/oracle/product/fmw11g/user_projects/domains/odo72/servers/OSM_MS1/logs/GC_OSM_MS1.log"
+	else
+		if [ "${SERVER_NAME}" = "AdminServer" ] ; then
+			echo "##### AdminServer #####"
+			USER_MEM_ARGS="-Xms3g -Xmx3g -Xmn1g -XX:MaxPermSize=1g -XX:PermSize=1g -XX:SurvivorRatio=4 -XX:TargetSurvivorRatio=70 -XX:+UseParallelOldGC -XX:ParallelGCThreads=2 -XX:-UseAdaptiveSizePolicy -XX:+UseCompressedOops -XX:+DisableExplicitGC -verbose:gc -XX:+PrintTenuringDistribution -XX:+PrintGCTimeStamps -XX:+PrintGCDateStamps -XX:+PrintGCDetails -XX:+PrintAdaptiveSizePolicy -XX:+AlwaysPreTouch -Xloggc:/u01/app/oracle/product/fmw11g/user_projects/domains/odo72/servers/AdminServer/logs/GC_AdminServer.log"
+		else
+			echo "##### Unknown managed server #####"
+			USER_MEM_ARGS="-Xms1024m -Xmx2048m -XX:PermSize=512m -XX:MaxPermSize=512m"
+		fi
+	fi
+fi
+
+mv $MW_HOME/coherence_3.7 $MW_HOME/coherence_3.7.orig
+cd $MW_HOME/coherence_3.7
+unzip /home/oracle/Downloads/Installers/Coherence3.7.1.13/p19485862_371_Generic.zip
+mv $MW_HOME/coherence $MW_HOME/coherence_3.7
+cp -f $MW_HOME/coherence_3.7/lib/coherence.jar $MW_HOME/oracle_common/modules/oracle.coherence
+
+reboot
+
+BLOCK VOLUME
+
+Exploit attached block volume:
+
+sudo -s
+
+If Block Volume was created with protocol iSCSI, follow the whitepaper 
+instructions (in the section "Creating a Gold Image Generator") to run
+the iSCSI Attach commands.
+
+fdisk /dev/sdb
+  # Issue these commands -	n,p,1,enter,enter,c,u,w
+
+/sbin/mkfs -t ext4 /dev/sdb1
+vi /etc/fstab
+	/dev/sdb1    /data1    ext4      defaults,noatime,_netdev,nofail      0      2
+
+mkdir /data1
+mkdir /data1/app
+chown oracle:oinstall /data1/app
+
+mount /dev/sdb1 /data1
+
+Reboot
+
+OSM PRE-INSTALLATION
+
+sudo -s
+
+mount /dev/sdb1 /data1
+
+su oracle
+cd
+source .bash_profile
+
+mkdir -p /data1/app/oracle/oradata/DB11G/
+
+dbstart $ORACLE_HOME
+
+sqlplus sys/Password123 as sysdba
+
+create tablespace large_data datafile '/data1/app/oracle/oradata/DB11G/data_large_01.dbf' size 20000M extent management local uniform size 1M;
+create tablespace large_index datafile '/data1/app/oracle/oradata/DB11G/index_large_01.dbf' size 20000M extent management local uniform size 1M;
+create tablespace large_data datafile '/data1/app/oracle/oradata/DB11G/data_large_02.dbf' size 20000M extent management local uniform size 1M;
+create tablespace large_index datafile '/data1/app/oracle/oradata/DB11G/index_large_02.dbf' size 25000M extent management local uniform size 1M;
+
+mkdir /u01/app/thirdparty
+
+cd ~/Downloads/Installers
+unzip jboss-cache-dist-1.4.1.SP12.zip
+mv JBossCache-1.4.1.SP12/ /u01/app/thirdparty/
+rm jboss-cache-dist-1.4.1.SP12.zip
+
+mkdir /u01/app/thirdparty/saxonb9-1-0-7
+mv saxonb9-1-0-7j.zip /u01/app/thirdparty/saxonb9-1-0-7/
+cd /u01/app/thirdparty/saxonb9-1-0-7/
+unzip saxonb9-1-0-7j.zip
+rm saxonb9-1-0-7j.zip
+
+OSM INSTALLATION
+
+startas
+cdaslogs
+tail -f AdminServer.out
+
+startosm
+cdosmlogs
+tail -f OSM_MS1.out
+
+confirm that this works
+	sqlplus sys/Password123@'(DESCRIPTION=(ADDRESS_LIST=(ADDRESS=(PROTOCOL=TCP)(HOST=10.0.0.16)(PORT=1521)))(CONNECT_DATA=(SID=DB11G)))' as sysdba
+		exit
+	sqlplus sys/Password123@'(DESCRIPTION=(ADDRESS_LIST=(ADDRESS=(PROTOCOL=TCP)(HOST=odo72.localdomain)(PORT=1521)))(CONNECT_DATA=(SID=DB11G)))' as sysdba
+		exit
+	
+	$WLS_HOME/common/bin/wlst.sh
+	connect('weblogic','Password123','t3://odo72.localdomain:7001')
+	disconnect()
+	connect('weblogic','Password123','t3://odo72.localdomain:8001')
+	disconnect()
+	exit()
+
+mkdir /u01/app/OSM
+cd /home/oracle/Downloads/Installers/OSM7.2.2.4.16
+chmod +x InstallLinux.bin
+./InstallLinux.bin
+	/u01/app/OSM
+	Typical Installation
+	odo72.localdomain, 1521, DB11G.WORLD, DB11G
+	sys as sysdba, Password123
+	LARGE_DATA, TEMP, LARGE_DATA, LARGE_INDEX, LARGE_DATA, LARGE_INDEX
+	Use Oracle Partitioning, 1000000, 32
+	(GMT) GMT
+	Connect to a running WebLogic Server
+	odo72.localdomain, 7001, weblogic, Password123, no SSL
+	OSM_MS1
+	/u01/app/thirdparty/JBossCache-1.4.1.SP12/lib
+	/u01/app/thirdparty/saxonb9-1-0-7
+	15, 15, 1
+	JMS File Store
+	admin, Password123, Password123
+	Password123 
+	Don't Use SSL, 45, localdomain, worklist
+	10, 24
+	odo.com, 25, user@odo.com
+	5,1,1
+	
+	For install logs:
+		/u01/app/OSM/Database/dbinstall/install/dbInstaller.log
+		/u01/app/OSM/InstallLog.txt
+
+stoposm
+startosm
+
+Verify login to OSM:
+http://odo72.localdomain:8001/OrderManagement
+	admin, Password123
+http://odo72.localdomain:8001/OrderManagement/orchestration
+
+stoposm
+stopas
+
+cd ~/Downloads/Installers
+rm -rf OSM7.2.2.4.16/
+
+su oracle
+	Password123
+cd
+source .bash_profile
+
+dbstart $ORACLE_HOME
+
+startas
+cdaslogs
+tail -f AdminServer.out
+
+sqlplus ordermgmt/Password123
+SET lines 300
+SELECT 
+    TABLE_NAME, PARTITION_NAME, NUM_ROWS, to_char(LAST_ANALYZED, 'yyyy.mm.dd hh24:mi:ss'), STALE_STATS
+FROM
+    USER_TAB_STATISTICS 
+WHERE
+    TABLE_NAME='OM_ORDER_HEADER' AND PARTITION_NAME LIKE 'P_%' AND SUBPARTITION_NAME IS NULL
+ORDER BY
+    1, 2
+/
+
+TABLE_NAME		       PARTITION_NAME			NUM_ROWS TO_CHAR(LAST_ANALYZ STA
+------------------------------ ------------------------------ ---------- ------------------- ---
+OM_ORDER_HEADER 	       P_000000000001000001		       0 2017.07.05 22:00:27 NO
+	
+startosm
+cdosmlogs
+tail -f OSM_MS1.out
+
+stoposm
+stopasap
+
+dbshut $ORACLE_HOME
+
+INSTALL ASAP
+
+su oracle
+source .bash_profile
+
+cd /home/oracle/Downloads/Installers/ASAP7.2.0.6.1
+unzip -q p13390677_112040_LINUX_4of7.zip
+cd client
+unset ORACLE_HOME
+unset TNS_ADMIN
+./runInstaller
+Select Installation Type: Administrator
+Download Software Updates: Skip software updates
+Select Product Languages: English
+Select Installation Location : Oracle Base = /u01/app/oracle
+Software Location = /u01/app/oracle/product/11.2.0/client32
+
+Ignore insufficient swap (expected 16GB, actual 8GB).
+
+# Create tnsnames.ora in Oracle client
+vi /u01/app/oracle/product/11.2.0/client32/network/admin/sqlnet.ora
+
+DB11G =
+  (DESCRIPTION =
+    (ADDRESS = (PROTOCOL = TCP)(HOST = odo72.localdomain)(PORT = 1521))
+    (CONNECT_DATA =
+      (SERVER = DEDICATED)
+      (SERVICE_NAME = DB11G.WORLD)
+    )
+  )
+
+# Login as Oracle DBA user
+sqlplus / as sysdba
+sqlplus sys/Password123@'(DESCRIPTION=(ADDRESS_LIST=(ADDRESS=(PROTOCOL=TCP)(HOST=odo72.localdomain)(PORT=1521)))(CONNECT_DATA=(SID=DB11G)))' as sysdba
+
+# Create ASAP data and index table spaces
+create tablespace "ASAP_DATA" logging datafile '/data1/app/oracle/oradata/DB11G/ASAP_DATA.dbf'
+size 1G reuse autoextend on next 5120K maxsize unlimited  default storage (initial 128K next 128K minextents 1 maxextents 2147483645 pctincrease 0);
+create tablespace "ASAP_INDEX" logging datafile '/data1/app/oracle/oradata/DB11G/ASAP_INDEX.dbf'
+size 1G reuse autoextend on next 5120K maxsize unlimited  default storage (initial 128K next 128K minextents 1 maxextents 2147483645 pctincrease 0);
+
+# Create DBA user ASAP_SYS
+CREATE USER "ASAP_SYS" PROFILE "DEFAULT"
+IDENTIFIED BY "Password123" DEFAULT TABLESPACE "ASAP_DATA"
+TEMPORARY TABLESPACE "TEMP"
+ACCOUNT UNLOCK;
+
+# Grant privileges to user ASAP_SYS
+GRANT CREATE ANY CONTEXT TO "ASAP_SYS" WITH ADMIN OPTION;
+GRANT CREATE ANY TABLE TO "ASAP_SYS" WITH ADMIN OPTION;
+GRANT CREATE ANY VIEW TO "ASAP_SYS" WITH ADMIN OPTION;
+GRANT CREATE SNAPSHOT TO "ASAP_SYS" WITH ADMIN OPTION;
+GRANT CREATE SYNONYM TO "ASAP_SYS" WITH ADMIN OPTION;
+GRANT CREATE TABLE TO "ASAP_SYS" WITH ADMIN OPTION;
+GRANT CREATE USER TO "ASAP_SYS" WITH ADMIN OPTION;
+GRANT CREATE VIEW TO "ASAP_SYS" WITH ADMIN OPTION;
+GRANT GRANT ANY PRIVILEGE TO "ASAP_SYS" WITH ADMIN OPTION;
+GRANT QUERY REWRITE TO "ASAP_SYS" WITH ADMIN OPTION;
+GRANT UNLIMITED TABLESPACE TO "ASAP_SYS" WITH ADMIN OPTION;
+GRANT SELECT ON "SYS"."V_$PARAMETER" TO "ASAP_SYS" WITH GRANT OPTION;
+GRANT "CONNECT" TO "ASAP_SYS" WITH ADMIN OPTION;
+GRANT "DBA" TO "ASAP_SYS" WITH ADMIN OPTION;
+GRANT "EXP_FULL_DATABASE" TO "ASAP_SYS" WITH ADMIN OPTION;
+GRANT "IMP_FULL_DATABASE" TO "ASAP_SYS" WITH ADMIN OPTION;
+GRANT "RESOURCE" TO "ASAP_SYS" WITH ADMIN OPTION;
+GRANT EXECUTE ON SYS.DBMS_LOCK TO "ASAP_SYS" WITH GRANT OPTION;
+GRANT SELECT ON DBA_TABLESPACES TO "ASAP_SYS" WITH GRANT OPTION;
+
+# Increase  Oracle database ‘processes’ parameter so all ASAP core processes can be started
+alter system set processes=1000 scope=spfile;
+shutdown immediate;
+startup;
+
+# Extract ASAP Installer
+cd /home/oracle/Downloads/Installers/ASAP7.2.0.6.1
+tar xf ASAP.R7_2_0_P6.B21.linux.tar
+
+# Stop WebLogic admin server and ASAP managed server
+stopasap
+stopas
+
+# Copy jconn2.jar into managed domain lib
+cp /home/oracle/Downloads/Installers/ASAP7.2.0.6.1/asap_utils/jconn2.jar /u01/app/oracle/product/fmw11g/user_projects/domains/odo72/lib/
+
+# Start admin server and ASAP managed server
+startas
+startasap
+
+# Run ASAP installer
+rm -rf ~/InstallShield
+cd /home/oracle/Downloads/Installers/ASAP7.2.0.6.1
+./ asap72ServerLinux
+
+Server Destination Directory: /home/oracle/ASAP72061
+Installation Type: Typical
+UNIX Environment Variables:
+ASAP Mode = Development
+ASAP Environment ID = AS72
+ORACLE_HOME = = /u01/app/oracle/product/11.2.0/client32
+Configure ASAP Database
+Name of Oracle DBMS Server = DB11G
+Oracle Server DBA User Name = ASAP_SYS
+Oracle Server DBA Password = Password123
+Configure ASAP Database Tablespaces:
+Data Segment = ASAP_DATA
+Index Segment = ASAP_INDEX
+Temporary tablespace = TEMP
+Configure ASAP Database User Password
+Password123
+Configure Oracle WebLogic Server
+Host Name of Oracle WebLogic Server = odo72.localdomain
+Port Number of Oracle WebLogic Server = 7001
+User Name of Oracle WebLogic Server Administrator = weblogic
+Password of Oracle WebLogic Server Administrator = Password123
+Connect to WebLogic Server using SSL = unchecked
+Configured Oracle WebLogic Server Doman and Server
+Oracle WebLogic Domain = odo72.localdomain
+Oracle WebLogic Server = ASAP_MS1
+Configure Oracle WebLogic User Passwords
+	Password123
+
+# Restart WebLogic servers
+# IMPORTANT – do this in a new shell. Do not start in shell with ASAP Environment_Profile sourced. 
+su oracle
+source .bash_profile
+
+stopasap
+stopas
+startas
+startasap
+
+# Start ASAP
+cd /home/oracle/ASAP72061
+. Environment_Profile
+start_asap_sys -d
+
+# Check ASAP core server status
+status
+
+# Stop ASAP core
+stop_asap_sys -d
+
+/u01/app/oracle/product/11.2.0/db_1/bin/dbshut $ORACLE_HOME
+
+REMOVE REFERENCES TO IP ADDRESS IN ASAP CONFIGURATION
+
+ASAP Server Host IP Address Configuration Change (Doc ID 1061359.1)
+	https://support.oracle.com/epmos/faces/DocumentDisplay?id=866113.1
+
+	cd /u01/app/oracle/product/fmw11g/user_projects/domains/odo72/config/jdbc
+		all ASAP connection pools use odo72.localdomain
+		
+	cd /u01/app/oracle/product/fmw11g/user_projects/domains/odo72/servers/AdminServer/upload/asapAS72/app
+	cp asapAS72.ear asapAS72.ear.orig
+
+	jar xvf asapAS72.ear jmx_connector.rar 
+	jar xvf jmx_connector.rar META-INF
+
+	cd META-INF
+	vi ra.xml
+		HOST is odo72.localdomain
+
+	cd ..
+	rm -rf META-INF 
+	rm jmx_connector.rar
+	rm asapAS72.ear.orig
+
+	sqlplus ctrlAS72/Password123
+		select * from tbl_listeners;
+
+		SRV_NAME
+		--------
+		HOST_NAME
+		--------------------------------------------------------------------------------
+		LISTENER_NAME				       PORT
+		---------------------------------------- ----------
+		NEP_AS72
+		odo72.localdomain
+		NEP_AS72_jlistener			      40244
+
+	cd /home/oracle/ASAP72061/config
+	
+	vi ASAP.cfg
+---->		BEA_WLS_HOST odo72.localdomain
+
+	cd /home/oracle/ASAP72061/SYBASE
+	vi interfaces
+		all odo72.localdomain
+
+sqlplus ctrlAS72/Password123
+select * from tbl_server_info;
+
+	SERVERNA
+	--------
+	HOSTNAME
+	--------------------------------------------------------------------------------
+	INFO
+	--------------------------------------------------------------------------------
+	OCA_AS72
+	<ip address> --> odo72.localdomain
+	9001
+
+----> update tbl_server_info set hostname='odo72.localdomain';
+
+sqlplus sarmAS72/Password123
+select srp_host_name from tbl_asap_srp where SRP_CONN_TYPE='S';
+
+	SRP_HOST_NAME
+	--------------------------------------------------------------------------------
+	<ip address>
+	<ip address>
+----> update tbl_asap_srp set srp_host_name='odo72.localdomain' where SRP_CONN_TYPE='S';
+
+cd /home/oracle/ASAP72061
+vi ASAP.properties
+	Check hostname, wls_admin_host, wls_host and the JNEP Oracle Database Host
+---->		wls_admin_host=odo72.localdomain
+---->		wls_host=<ip address> --> odo72.localdomain
+
+sqlplus nepAS72/Password123
+
+startasap
+	startasapcore
+	status
+
+stopasap
+stopas
+
+dbshut $ORACLE_HOME
+
+reboot
+
+WEBLOGIC PATCHES
+
+su oracle
+source .bash_profile
+
+/home/oracle/Downloads/Installers/WLS10.3.6.0.13/patches
+ls -al
+
+-rw-rw-r--. 1 oracle oinstall 1285243 Jun  9 19:17 p13516117_1036_Generic.zip
+-rw-rw-r--. 1 oracle oinstall 3245911 Jun  9 19:22 p13921551_1036013_Generic.zip
+-rw-rw-r--. 1 oracle oinstall 3228219 Jun  9 19:28 p18084750_1036013_Generic.zip
+-rw-rw-r--. 1 oracle oinstall 3577158 Jun  9 19:23 p18492020_1036013_Generic.zip
+-rw-rw-r--. 1 oracle oinstall 3082365 Jun  9 19:27 p19600230_1036013_Generic.zip
+-rw-rw-r--. 1 oracle oinstall 2092421 Jun  9 19:30 p19721047_1036_Generic.zip
+-rw-rw-r--. 1 oracle oinstall 3687191 Jun  9 19:25 p22808958_1036013_Generic.zip
+-rw-rw-r--. 1 oracle oinstall 8357823 Jun  9 19:26 p22808983_1036013_Generic.zip
+-rw-rw-r--. 1 oracle oinstall 3811935 Jun  9 19:32 p25070756_1036013_Generic.zip
+
+@@@@@@@@@@@@@@@@@@ 13516117 @@@@@@@@@@@@@@@@@@@@
+
+cd /u01/app/oracle/product/fmw11g/utils/bsu
+rm -rf cache_dir
+mkdir cache_dir
+cd cache_dir
+
+unzip /home/oracle/Downloads/Installers/WLS10.3.6.0.13/patches/p13516117_1036_Generic.zip 
+
+cd /u01/app/oracle/product/fmw11g/utils/bsu
+
+./bsu.sh -verbose -install -patch_download_dir=/u01/app/oracle/product/fmw11g/utils/bsu/cache_dir -patchlist=ZQQ4 -prod_dir=/u01/app/oracle/product/fmw11g/wlserver_10.3
+	
+@@@@@@@@@@@@@@@@@@ 13921551 @@@@@@@@@@@@@@@@@@@@
+
+cd /u01/app/oracle/product/fmw11g/utils/bsu
+rm -rf cache_dir
+mkdir cache_dir
+cd cache_dir
+
+unzip /home/oracle/Downloads/Installers/WLS10.3.6.0.13/patches/p13921551_1036013_Generic.zip 
+
+cd /u01/app/oracle/product/fmw11g/utils/bsu
+
+./bsu.sh -verbose -install -patch_download_dir=/u01/app/oracle/product/fmw11g/utils/bsu/cache_dir -patchlist=4J78 -prod_dir=/u01/app/oracle/product/fmw11g/wlserver_10.3
+
+@@@@@@@@@@@@@@@@@@ 18084750 @@@@@@@@@@@@@@@@@@@@
+
+cd /u01/app/oracle/product/fmw11g/utils/bsu
+rm -rf cache_dir
+mkdir cache_dir
+cd cache_dir
+
+unzip /home/oracle/Downloads/Installers/WLS10.3.6.0.13/patches/p18084750_1036013_Generic.zip 
+
+cd /u01/app/oracle/product/fmw11g/utils/bsu
+./bsu.sh -verbose -install -patch_download_dir=/u01/app/oracle/product/fmw11g/utils/bsu/cache_dir -patchlist=WJIE -prod_dir=/u01/app/oracle/product/fmw11g/wlserver_10.3
+
+@@@@@@@@@@@@@@@@@@ 18492020 @@@@@@@@@@@@@@@@@@@@
+
+cd /u01/app/oracle/product/fmw11g/utils/bsu
+rm -rf cache_dir
+mkdir cache_dir
+cd cache_dir
+unzip /home/oracle/Downloads/Installers/WLS10.3.6.0.13/patches/p18492020_1036013_Generic.zip 
+
+cd /u01/app/oracle/product/fmw11g/utils/bsu
+./bsu.sh -verbose -install -patch_download_dir=/u01/app/oracle/product/fmw11g/utils/bsu/cache_dir -patchlist=HSM3 -prod_dir=/u01/app/oracle/product/fmw11g/wlserver_10.3
+
+@@@@@@@@@@@@@@@@@@ 19600230 @@@@@@@@@@@@@@@@@@@@
+
+cd /u01/app/oracle/product/fmw11g/utils/bsu
+rm -rf cache_dir
+mkdir cache_dir
+cd cache_dir
+unzip /home/oracle/Downloads/Installers/WLS10.3.6.0.13/patches/p19600230_1036013_Generic.zip 
+
+cd /u01/app/oracle/product/fmw11g/utils/bsu
+./bsu.sh -verbose -install -patch_download_dir=/u01/app/oracle/product/fmw11g/utils/bsu/cache_dir -patchlist=J6HB -prod_dir=/u01/app/oracle/product/fmw11g/wlserver_10.3
+
+@@@@@@@@@@@@@@@@@@ 19721047 @@@@@@@@@@@@@@@@@@@@
+
+cd /u01/app/oracle/product/fmw11g/utils/bsu
+rm -rf cache_dir
+mkdir cache_dir
+cd cache_dir
+unzip /home/oracle/Downloads/Installers/WLS10.3.6.0.13/patches/p19721047_1036_Generic.zip 
+
+cd /u01/app/oracle/product/fmw11g/utils/bsu
+./bsu.sh -verbose -install -patch_download_dir=/u01/app/oracle/product/fmw11g/utils/bsu/cache_dir -patchlist=ITB3 -prod_dir=/u01/app/oracle/product/fmw11g/wlserver_10.3
+
+@@@@@@@@@@@@@@@@@@ 22808958 @@@@@@@@@@@@@@@@@@@@
+
+cd /u01/app/oracle/product/fmw11g/utils/bsu
+rm -rf cache_dir
+mkdir cache_dir
+cd cache_dir
+unzip /home/oracle/Downloads/Installers/WLS10.3.6.0.13/patches/p22808958_1036013_Generic.zip 
+
+cd /u01/app/oracle/product/fmw11g/utils/bsu
+./bsu.sh -verbose -install -patch_download_dir=/u01/app/oracle/product/fmw11g/utils/bsu/cache_dir -patchlist=QA6Q -prod_dir=/u01/app/oracle/product/fmw11g/wlserver_10.3
+
+@@@@@@@@@@@@@@@@@@ 22808983 @@@@@@@@@@@@@@@@@@@@
+
+cd /u01/app/oracle/product/fmw11g/utils/bsu
+rm -rf cache_dir
+mkdir cache_dir
+cd cache_dir
+unzip /home/oracle/Downloads/Installers/WLS10.3.6.0.13/patches/p22808983_1036013_Generic.zip 
+
+cd /u01/app/oracle/product/fmw11g/utils/bsu
+./bsu.sh -verbose -install -patch_download_dir=/u01/app/oracle/product/fmw11g/utils/bsu/cache_dir -patchlist=USW2 -prod_dir=/u01/app/oracle/product/fmw11g/wlserver_10.3
+
+@@@@@@@@@@@@@@@@@@ 25070756 @@@@@@@@@@@@@@@@@@@@
+
+cd /u01/app/oracle/product/fmw11g/utils/bsu
+rm -rf cache_dir
+mkdir cache_dir
+cd cache_dir
+unzip /home/oracle/Downloads/Installers/WLS10.3.6.0.13/patches/p25070756_1036013_Generic.zip 
+
+cd /u01/app/oracle/product/fmw11g/utils/bsu
+./bsu.sh -verbose -install -patch_download_dir=/u01/app/oracle/product/fmw11g/utils/bsu/cache_dir -patchlist=UTVE -prod_dir=/u01/app/oracle/product/fmw11g/wlserver_10.3
+
+dbstart $ORACLE_HOME
+
+sqlplus sys/Password123 as sysdba
+
+-- list all tablespaces with their associated files, the 
+-- tablespace's allocated space, free space, and the 
+-- next free extent:
+
+clear breaks
+SET linesize 130
+SET pagesize 60
+SELECT df.tablespace_name TABLESPACE, df.total_space TOTAL_SPACE,
+fs.free_space FREE_SPACE, df.total_space_mb TOTAL_SPACE_MB,
+(df.total_space_mb - fs.free_space_mb) USED_SPACE_MB,
+fs.free_space_mb FREE_SPACE_MB,
+ROUND(100 * (fs.free_space / df.total_space),2) PCT_FREE
+FROM (SELECT tablespace_name, SUM(bytes) TOTAL_SPACE,
+      ROUND(SUM(bytes) / 1048576) TOTAL_SPACE_MB
+      FROM dba_data_files
+      GROUP BY tablespace_name) df,
+     (SELECT tablespace_name, SUM(bytes) FREE_SPACE,
+       ROUND(SUM(bytes) / 1048576) FREE_SPACE_MB
+       FROM dba_free_space
+       GROUP BY tablespace_name) fs
+WHERE df.tablespace_name = fs.tablespace_name(+)
+ORDER BY fs.tablespace_name;
+
+
+show parameter cursor
+
+NAME				     TYPE	 VALUE
+------------------------------------ ----------- ------------------------------
+cursor_bind_capture_destination      string	 memory+disk
+cursor_sharing			     string	 EXACT
+cursor_space_for_time		     boolean	 FALSE
+open_cursors			     integer	 300
+session_cached_cursors		     integer	 50
+
+ALTER SYSTEM SET cursor_sharing = FORCE SCOPE=BOTH; 
+ALTER SYSTEM SET open_cursors = 1500 SCOPE=BOTH; 
+ALTER SYSTEM SET session_cached_cursors = 50 SCOPE=SPFILE; 
+
+show parameter _optimizer_invalidation_period
+alter system set "_optimizer_invalidation_period"=600 scope=both;
+
+show parameter segment
+
+NAME				     TYPE			      VALUE
+------------------------------------ -------------------------------- ------------------------------
+deferred_segment_creation	     boolean			      TRUE
+rollback_segments		     string
+transactions_per_rollback_segment    integer			      5
+
+ALTER SYSTEM SET deferred_segment_creation = FALSE SCOPE=BOTH; 
+
+sqlplus ordermgmt/Password123
+
+select * from om_parameter where mnemonic = 'subpartitions_number';
+	32
+
+select * from om_parameter where mnemonic = 'range_partition_size';
+	1000000
+		
+select * from om_parameter where mnemonic = 'partition_auto_creation';
+	Y
+update om_parameter set value = 'N' where mnemonic = 'partition_auto_creation';
+commit;
+
+execute dbms_space_admin.materialize_deferred_segments('ordermgmt');  
+
+execute om_part_maintain.add_partitions(1);
+execute om_part_maintain.add_partitions(1);
+
+TABLE_NAME		       PARTITION_NAME			NUM_ROWS TO_CHAR(LAST_ANALYZED,'YYYY.MM.DDHH24:MI:SS')				     STA
+------------------------------ ------------------------------ ---------- --------------------------------------------------------------------------- ---
+OM_ORDER_HEADER 	       P_000000000001000001		       0 2017.07.05 22:00:27							     NO
+OM_ORDER_HEADER 	       P_000000000002000001
+OM_ORDER_HEADER 	       P_000000000003000001
+OM_ORDER_HEADER 	       P_000000000004000001
+
+execute DBMS_STATS.SET_SCHEMA_PREFS(user,'DEGREE','DBMS_STATS.AUTO_DEGREE');
+exit
+
+dbshut $ORACLE_HOME
+
+reboot
+
+DATABASE PATCHES
+
+sudo -s
+
+mount /dev/sdb1 /data1
+
+rngd -r /dev/urandom -o /dev/random -t 1
+
+cd /home/opc/Downloads/Installers
+chown -R oracle:oinstall DbPatches
+cd DbPatches
+mv * /u01/app/oracle/product/11.2.0/db_1/OPatch/DbPatches
+
+$ORACLE_HOME/OPatch/opatch lsinventory
+There are no Interim patches installed in this Oracle Home.
+
+cd $ORACLE_HOME/OPatch
+rm -rf *
+
+cd $ORACLE_HOME/OPatch
+mkdir DbPatches
+
+Copy patches to DbPatches directory
+
+ls -al
+-rw-rw-r--. 1 oracle oinstall     49948 Jun  9 21:00 p14380605_112040_Linux-x86-64.zip
+-rw-rw-r--. 1 oracle oinstall    322612 Jun  9 21:07 p16188701_112040_Linux-x86-64.zip
+-rw-rw-r--. 1 oracle oinstall    416010 Jun  9 21:16 p17551261_112040_Linux-x86-64.zip
+-rw-rw-r--. 1 oracle oinstall    292220 Jun 13 20:28 p18416368_112045_Linux-x86-64.zip
+-rw-rw-r--. 1 oracle oinstall     13246 Jun  9 21:03 p18966843_112040_Generic.zip
+-rw-rw-r--. 1 oracle oinstall     37842 Jun 13 21:15 p20879889_112047_Linux-x86-64.zip
+-rw-rw-r--. 1 oracle oinstall 104635639 Jun  9 20:59 p23054359_112040_Linux-x86-64.zip
+-rw-rw-r--.  1 oracle oinstall  33020933 Sep 22  2014 p6880880_112000_LINUX.zip
+
+Opatch 11.2.0.3.6
+
+cd /u01/app/oracle/product/11.2.0/db_1/
+unzip /u01/app/oracle/product/11.2.0/db_1/OPatch/DbPatches/p6880880_112000_LINUX.zip
+
+Patch 23054359 - Database Patch Set Update 11.2.0.4.160719 (Includes CPUJul2016)
+
+cd $ORACLE_HOME/OPatch/DbPatches
+
+unzip p23054359_112040_Linux-x86-64.zip
+cd 23054359
+$ORACLE_HOME/OPatch/opatch apply
+
+cd $ORACLE_HOME/rdbms/admin
+sqlplus /nolog
+CONNECT / AS SYSDBA
+STARTUP
+@catbundle.sql psu apply
+SHUTDOWN
+QUIT
+
+Patch 14380605
+
+cd $ORACLE_HOME/OPatch/DbPatches
+unzip  p14380605_112040_Linux-x86-64.zip
+
+cd 14380605
+$ORACLE_HOME/OPatch/opatch apply
+
+Patch 16188701
+
+cd $ORACLE_HOME/OPatch/DbPatches
+unzip  p16188701_112040_Linux-x86-64.zip
+
+cd 16188701
+$ORACLE_HOME/OPatch/opatch apply
+
+Patch 17551261
+
+cd $ORACLE_HOME/OPatch/DbPatches
+
+unzip  p17551261_112040_Linux-x86-64.zip
+cd 17551261
+$ORACLE_HOME/OPatch/opatch apply
+
+Patch 18416368
+
+cd $ORACLE_HOME/OPatch/DbPatches
+
+unzip  p18416368_112045_Linux-x86-64.zip
+cd 18416368
+$ORACLE_HOME/OPatch/opatch apply
+
+Patch 18966843
+
+cd $ORACLE_HOME/OPatch/DbPatches
+
+unzip  p18966843_112040_Generic.zip
+cd 18966843
+$ORACLE_HOME/OPatch/opatch apply
+
+sqlplus /nolog
+CONNECT / AS SYSDBA
+STARTUP
+@?/sqlpatch/18966843/postinstall.sql
+SHUTDOWN
+QUIT
+
+Patch 20879889
+
+cd $ORACLE_HOME/OPatch/DbPatches
+
+unzip  p20879889_112047_Linux-x86-64.zip
+cd 20879889
+$ORACLE_HOME/OPatch/opatch apply
+
+Patch 26651181 
+
+cd $ORACLE_HOME/OPatch/DbPatches
+
+unzip p27229018_112046_Linux-x86-64.zip
+cd 27229018
+
+$ORACLE_HOME/OPatch/opatch apply 
+
+sqlplus /nolog
+CONNECT / AS SYSDBA
+STARTUP
+@?/sqlpatch/18966843/postinstall.sql
+SHUTDOWN
+QUIT
+
+$ORACLE_HOME/OPatch/opatch lsinventory
+
+dbshut $ORACLE_HOME
+
+reboot
+
+sudo -s
+mount /dev/sdb1 /data1
+rngd -r /dev/urandom -o /dev/random -t 1
+
+Add this parameter to OSM managed servers:
+
+-Dmslv.oms.config=/u01/app/oracle/product/fmw11g/user_projects/domains/odo72/oms-config.xml
+
+Add parameters to OSM configuration file (after following documented procedure to extract that file from oms.ear)
+
+vi /u01/app/oracle/product/fmw11g/user_projects/domains/odo72/oms-config.xml
+
+    <oms-parameter>
+        <oms-parameter-name>oracle.communications.ordermanagement.RuleDelayTaskPoller.Interval</oms-parameter-name>
+        <oms-parameter-value>1000</oms-parameter-value>
+    </oms-parameter>
+    <oms-parameter>
+        <oms-parameter-name>OrderCacheMaxEntries</oms-parameter-name>
+        <oms-parameter-value>5000</oms-parameter-value>
+    </oms-parameter>
+    <oms-parameter>
+        <oms-parameter-name>ClosedOrderCacheMaxEntries</oms-parameter-name>
+        <oms-parameter-value>500</oms-parameter-value>
+    </oms-parameter>
+    <oms-parameter>
+        <oms-parameter-name>OrderCacheInactivityTimeout</oms-parameter-name>
+        <oms-parameter-value>180</oms-parameter-value>
+    </oms-parameter>
+    <oms-parameter>
+        <oms-parameter-name>ClosedOrderCacheTimeout</oms-parameter-name>
+        <oms-parameter-value>60</oms-parameter-value>
+    </oms-parameter>
+    
+Submit a large number of orders (e.g., 100K orders) using the sample SoapUI ODO project (use the load test and let the system run for a day or two). 
+
+Note that a Design Studio project is also provided for the sample ODO cartridge (already deployed on gold image).
+    
+Apply the supplied om_db_stats_pkg_wrapped.sql to the DB, then:
+    
+as ordermgmt user
+
+execute DBMS_STATS.SET_SCHEMA_PREFS(user,'DEGREE','DBMS_STATS.AUTO_DEGREE');
+
+as sys
+
+BEGIN
+  DBMS_AUTO_TASK_ADMIN.DISABLE(
+    client_name => 'auto optimizer stats collection', 
+    operation => NULL, 
+    window_name => NULL);
+END;
+/
+
+set serveroutput on
+set lines 300
+SELECT client_name, status FROM dba_autotask_operation;
+
+set serveroutput on
+declare
+v_gathering_status integer;
+begin
+    begin
+     select 1
+        into v_gathering_status
+        from dba_autotask_client_job
+        where client_name = 'auto optimizer stats collection'
+            and job_scheduler_status = 'RUNNING'
+            and rownum = 1;
+        dbms_output.put_line('Auto optimizer stats collection is running');
+        return;
+    exception
+    when no_data_found then
+        null;
+    end;
+    dbms_output.put_line('Auto optimizer stats collection is not running');
+end;
+/
+
+execute DBMS_STATS.GATHER_FIXED_OBJECTS_STATS;
+
+execute DBMS_STATS.GATHER_SYSTEM_STATS;
+
+as ordermgmt
+
+execute om_db_stats_pkg.unlock_volatile_order_stats;
+
+while submitting orders:
+
+set serveroutput on
+execute DBMS_STATS.SET_SCHEMA_PREFS(user, 'DEGREE', 2);
+execute DBMS_STATS.GATHER_SCHEMA_STATS(user);
+execute DBMS_STATS.SET_SCHEMA_PREFS(user, 'DEGREE', 'DBMS_STATS.AUTO_DEGREE');
+
+execute DBMS_STATS.GATHER_SCHEMA_STATS(user);
+
+stop submitting orders
+
+execute om_db_stats_pkg.lock_volatile_order_stats;
+
+SET lines 300
+SELECT 
+    TABLE_NAME, PARTITION_NAME, NUM_ROWS, to_char(LAST_ANALYZED, 'yyyy.mm.dd hh24:mi:ss'), STALE_STATS
+FROM
+    USER_TAB_STATISTICS 
+WHERE
+    TABLE_NAME='OM_ORDER_HEADER' AND PARTITION_NAME LIKE 'P_%' AND SUBPARTITION_NAME IS NULL
+ORDER BY
+    1, 2
+/
+
+TABLE_NAME		       PARTITION_NAME			NUM_ROWS TO_CHAR(LAST_ANALYZED,'YYYY.MM.DDHH24:MI:SS')			     STA
+------------------------------ ------------------------------ ---------- --------------------------------------------------------------------------- ---
+OM_ORDER_HEADER 	       P_000000000001000001		   85218 2017.07.20 18:15:38						     NO
+OM_ORDER_HEADER 	       P_000000000002000001		       0 2017.07.20 18:15:38						     NO
+OM_ORDER_HEADER 	       P_000000000003000001		       0 2017.07.20 18:15:38						     NO
+OM_ORDER_HEADER 	       P_000000000004000001		       0 2017.07.20 18:15:38	
+ 
+P_000000000001000001, count: 86833, oldest order: 2017.07.19 19:35:25
+
+P_000000000002000001, count: 0, oldest order:
+
+P_000000000003000001, count: 0, oldest order:
+
+P_000000000004000001, count: 0, oldest order:
+
+set serveroutput on
+declare
+    v_success boolean;
+begin
+    om_db_stats_pkg.copy_order_ptn_stats(v_success,  a_dst_partition_name => 'P_000000000002000001',  a_src_partition_name => 'P_000000000001000001');
+end;
+/
+
+declare
+    v_success boolean;
+begin
+    om_db_stats_pkg.copy_order_ptn_stats(v_success,  a_dst_partition_name => 'P_000000000003000001',  a_src_partition_name => 'P_000000000001000001');
+end;
+/
+
+declare
+    v_success boolean;
+begin
+    om_db_stats_pkg.copy_order_ptn_stats(v_success,  a_dst_partition_name => 'P_000000000004000001',  a_src_partition_name => 'P_000000000001000001');
+end;
+/
+
+SET lines 300
+SELECT 
+    TABLE_NAME, PARTITION_NAME, NUM_ROWS, to_char(LAST_ANALYZED, 'yyyy.mm.dd hh24:mi:ss'), STALE_STATS
+FROM
+    USER_TAB_STATISTICS 
+WHERE
+    TABLE_NAME='OM_ORDER_HEADER' AND PARTITION_NAME LIKE 'P_%' AND SUBPARTITION_NAME IS NULL
+ORDER BY
+    1, 2
+/
+
+TABLE_NAME		       PARTITION_NAME	      NUM_ROWS TO_CHAR(LAST_ANALYZED,'YYYY.MM.DDHH24:MI:SS')				   STA
+------------------------------ -------------------- ---------- --------------------------------------------------------------------------- ---
+OM_ORDER_HEADER 	       P_000000000001000001	 85218 2017.07.20 18:15:38							   NO
+OM_ORDER_HEADER 	       P_000000000002000001	 85218 2017.07.20 18:15:38							   NO
+OM_ORDER_HEADER 	       P_000000000003000001	 85218 2017.07.20 18:15:38							   NO
+OM_ORDER_HEADER 	       P_000000000004000001	 85218 2017.07.20 18:15:38							   NO
+
+set serveroutput on
+declare
+    v_sql     varchar2(120);
+    v_count   integer;
+    v_oldest  varchar2(32);
+begin
+    dbms_output.put_line(' ') ;
+    for p in
+        (select partition_name
+            from user_tab_partitions
+            where table_name = 'OM_ORDER_HEADER'
+            order by partition_name
+        )
+    loop
+        v_sql := 'select count(*)  from om_order_header partition('||p.partition_name||')';
+        execute immediate v_sql into v_count;
+        v_sql := 'select to_char(min(ORD_CREATION_DATE), ''yyyy.mm.dd hh24:mi:ss'') from om_order_header partition('||p.partition_name||')';
+        execute immediate v_sql into v_oldest;
+        dbms_output.put_line(chr(13) ||chr(10) ||p.partition_name||', count: ' || v_count || ', oldest order: ' || v_oldest) ;
+    end loop;
+end;
+/
+LARGE_DATA			4.1943E+10 2.8252E+10	       40000	     13057	   26943      67.36
+LARGE_INDEX			4.7186E+10 3.1178E+10	       45000	     15266	   29734      66.08
+
+df -h
+/dev/sdb1        99G   91G  2.5G  98% /data1
+
+set serveroutput on
+execute DBMS_STATS.GATHER_SCHEMA_STATS(user);
+
+set serveroutput on
+declare
+    v_success boolean;
+begin
+    om_db_stats_pkg.copy_order_ptn_stats(v_success,  a_dst_partition_name => 'P_000000000002000001',  a_src_partition_name => 'P_000000000001000001');
+end;
+/
+
+declare
+    v_success boolean;
+begin
+    om_db_stats_pkg.copy_order_ptn_stats(v_success,  a_dst_partition_name => 'P_000000000003000001',  a_src_partition_name => 'P_000000000001000001');
+end;
+/
+
+declare
+    v_success boolean;
+begin
+    om_db_stats_pkg.copy_order_ptn_stats(v_success,  a_dst_partition_name => 'P_000000000004000001',  a_src_partition_name => 'P_000000000001000001');
+end;
+/
+
+SET lines 300
+SELECT 
+    TABLE_NAME, PARTITION_NAME, NUM_ROWS, to_char(LAST_ANALYZED, 'yyyy.mm.dd hh24:mi:ss'), STALE_STATS
+FROM
+    USER_TAB_STATISTICS 
+WHERE
+    TABLE_NAME='OM_ORDER_HEADER' AND PARTITION_NAME LIKE 'P_%' AND SUBPARTITION_NAME IS NULL
+ORDER BY
+    1, 2
+/
+
+TABLE_NAME		       PARTITION_NAME			NUM_ROWS TO_CHAR(LAST_ANALYZED,'YYYY.MM.DDHH24:MI:SS')				     STA
+------------------------------ ------------------------------ ---------- --------------------------------------------------------------------------- ---
+OM_ORDER_HEADER 	       P_000000000001000001		  145948 2017.07.21 16:12:59		     NO
+OM_ORDER_HEADER 	       P_000000000002000001		  145948 2017.07.21 16:12:59		     NO
+OM_ORDER_HEADER 	       P_000000000003000001		  145948 2017.07.21 16:12:59		     NO
+OM_ORDER_HEADER 	       P_000000000004000001		  145948 2017.07.21 16:12:59		     NO
+
+dbshut $ORACLE_HOME
+
+CREATE OMC USER
+
+sqlplus sys/Password123 as sysdba
+
+create role moncsrole;
+create user moncs identified by Password123;
+grant create session to moncs;
+grant select on gv_$parameter to moncsrole;
+grant select on v_$instance to moncsrole;
+grant select on gv_$sql_monitor to moncsrole;
+grant select on v_$database to moncsrole;
+grant select on gv_$instance to moncsrole;
+grant select on gv_$osstat to moncsrole;
+grant select on gv_$sga to moncsrole;
+grant select on gv_$pgastat to moncsrole;
+grant select on gv_$sysmetric_summary to moncsrole;
+grant select on sys.dba_tablespaces to moncsrole;
+grant select on dba_data_files to moncsrole;
+grant select on dba_free_space to moncsrole;
+grant select on dba_undo_extents to moncsrole;
+grant select on v_$active_session_history to moncsrole;
+grant select on v_$ash_info to moncsrole;
+grant select on v_$parameter to moncsrole;
+grant select on dba_temp_files to moncsrole;
+grant select on gv_$sort_segment to moncsrole;
+grant select on sys.ts$ to moncsrole;
+grant execute on sys.dbms_lock to moncsrole;
+grant execute on dbms_system to moncsrole;
+grant select on gv_$IOSTAT_FILE to moncsrole;
+grant select on gv_$sysstat to moncsrole;
+grant select on gv_$sys_time_model to moncsrole;
+grant select on v_$event_name to moncsrole;
+grant select on gv_$waitclassmetric to moncsrole;
+grant select on gv_$sysmetric to moncsrole;
+grant select on gv_$system_event to moncsrole;
+grant select on gv_$sql to moncsrole;
+grant select on v_$system_event to moncsrole;
+grant select on v_$alert_types to moncsrole;
+grant select on v_$threshold_types to moncsrole;
+grant select on v_$sysmetric to moncsrole;
+
+grant moncsrole to moncs;
+
+sqlplus ordermgmt/Password123
+GRANT SELECT ON OM_ORDER_HEADER TO moncs;
+
+mkdir /u01/app/oracle/product/11.2.0/db_1/odo72.localdomain_DB11G
+./emca -config dbcontrol db
+
+https://odo72.localdomain:1158/em
+
+emctl status dbconsole
+emctl start dbconsole
+
+In Firefox
+https://get.adobe.com/flashplayer
+
+sudo -s
+rpm -ivh flash-player-npapi-27.0.0.130-release.x86_64.rpm 
+
+Resized redo log files from 50 MB to 500 MB
+
+http://www.idevelopment.info/data/Oracle/DBA_tips/Database_Administration/DBA_34.shtml
+
+-- Show Redo Logs info
+set linesize 300
+column REDOLOG_FILE_NAME format a50
+SELECT
+    a.GROUP#,
+    a.THREAD#,
+    a.SEQUENCE#,
+    a.ARCHIVED,
+    a.STATUS,
+    b.MEMBER    AS REDOLOG_FILE_NAME,
+    (a.BYTES/1024/1024) AS SIZE_MB
+FROM v$log a
+JOIN v$logfile b ON a.Group#=b.Group# 
+ORDER BY a.GROUP# ASC;
+
+select ACTUAL_REDO_BLKS,TARGET_REDO_BLKS,TARGET_MTTR,ESTIMATED_MTTR,
+    OPTIMAL_LOGFILE_SIZE,CKPT_BLOCK_WRITES  from v$instance_recovery;
+
+SELECT a.group#, a.member, b.bytes
+FROM v$logfile a, v$log b WHERE a.group# = b.group#;
+
+select group#, status from v$log;
+
+alter system switch logfile;
+
+ALTER SYSTEM CHECKPOINT GLOBAL;
+
+alter database drop logfile group 2;
+
+alter database add logfile group 2 (
+'/u01/app/oracle/oradata/DB11G/redo02.log') size 500m reuse;
+
+alter database drop logfile group 1;
+
+alter database add logfile group 1 (
+'/u01/app/oracle/oradata/DB11G/redo01.log') size 500m reuse;
+
+alter database drop logfile group 3;
+
+alter database add logfile group 3 (
+'/u01/app/oracle/oradata/DB11G/redo03.log') size 500m reuse;
+
+As root
+
+service iptables status | more
+
+Chain INPUT (policy ACCEPT)
+num  target     prot opt source               destination
+1    ACCEPT     tcp  --  0.0.0.0/0            0.0.0.0/0           tcp dpt:9012
+2    ACCEPT     tcp  --  0.0.0.0/0            0.0.0.0/0           tcp dpt:9011
+3    ACCEPT     tcp  --  0.0.0.0/0            0.0.0.0/0           tcp dpt:9002
+4    ACCEPT     tcp  --  0.0.0.0/0            0.0.0.0/0           tcp dpt:9001
+5    ACCEPT     tcp  --  0.0.0.0/0            0.0.0.0/0           tcp dpt:8002
+6    ACCEPT     tcp  --  0.0.0.0/0            0.0.0.0/0           tcp dpt:8001
+7    ACCEPT     tcp  --  0.0.0.0/0            0.0.0.0/0           tcp dpt:7002
+8    ACCEPT     tcp  --  0.0.0.0/0            0.0.0.0/0           tcp dpt:7001
+9    ACCEPT     tcp  --  0.0.0.0/0            0.0.0.0/0           tcp dpt:1521
+...
+
+iptables -t nat -A PREROUTING -i eth0 -p tcp --dport 8101 -j REDIRECT --to-port 8001
+
+service iptables status | more
+
+	Table: nat
+	Chain PREROUTING (policy ACCEPT)
+	num  target     prot opt source               destination
+	1    REDIRECT   tcp  --  0.0.0.0/0            0.0.0.0/0           tcp dpt:8101 rFwlst
+	edir ports 8001
+
+service iptables save
+
+As oracle
+
+crontab -l
+
+*/1 * * * * /home/oracle/scripts/odo/collect_metrics.sh >  /home/oracle/scripts/odo/collect_metrics.log 2>&1
+
+crontab -e
+
+# */1 * * * * /home/oracle/scripts/odo/collect_metrics.sh >  /home/oracle/scripts/odo/collect_metrics.log 2>&1
+
+Checked that UIM was reachable at (replace with actual IP and port): 
+
+http://10.0.0.3:9011/cartridge/wsapi
+
+sqlplus ctrlAS72/Password123
+set serveroutput on
+execute DBMS_STATS.GATHER_SCHEMA_STATS(user);
+
+sqlplus sarmAS72/Password123
+set serveroutput on
+execute DBMS_STATS.GATHER_SCHEMA_STATS(user);
+
+sqlplus nepAS72/Password123
+set serveroutput on
+execute DBMS_STATS.GATHER_SCHEMA_STATS(user);
+
+Disable stats for OSM and ASAP.
+
+sqlplus sys/Password123 as sysdba
+
+BEGIN
+DBMS_AUTO_TASK_ADMIN.DISABLE(
+client_name => 'auto optimizer stats collection',
+operation => NULL,
+window_name => NULL);
+END;
+/
+
+set serveroutput on
+set lines 300
+SELECT client_name, status FROM dba_autotask_operation;
+
+CP-oms_pool-1530-jdbc.xml
+
+  <jdbc-connection-pool-params>
+    <initial-capacity>5</initial-capacity>
+    <max-capacity>40</max-capacity>
+    <min-capacity>15</min-capacity>
+    <capacity-increment>1</capacity-increment>
+    <shrink-frequency-seconds>900</shrink-frequency-seconds>
+    <test-frequency-seconds>300</test-frequency-seconds>
+    <test-connections-on-reserve>true</test-connections-on-reserve>
+    <test-table-name>SQL SELECT 1 FROM DUAL</test-table-name>
+    <statement-cache-size>30</statement-cache-size>
+    <remove-infected-connections>false</remove-infected-connections>
+    <statement-timeout>602</statement-timeout>
+  </jdbc-connection-pool-params>
+  
+JTA Timeout at 600
+
+
+    <min-threads-constraint>
+      <name>osmGuiMinThreadConstraint</name>
+      <target>OSM_MS1</target>
+      <count>4</count>
+    </min-threads-constraint>
+    <max-threads-constraint>
+      <name>osmAutomationMaxThreadConstraint</name>
+      <target>OSM_MS1</target>
+      <count>16</count>
+    </max-threads-constraint>
+    <max-threads-constraint>
+      <name>osmGuiMaxThreadConstraint</name>
+      <target>OSM_MS1</target>
+      <count>8</count>
+    </max-threads-constraint>
+    <max-threads-constraint>
+      <name>osmJmsApiMaxThreadConstraint</name>
+      <target>OSM_MS1</target>
+      <count>4</count>
+    </max-threads-constraint>
+    <max-threads-constraint>
+      <name>osmHttpApiMaxThreadConstraint</name>
+      <target>OSM_MS1</target>
+      <count>4</count>
+    </max-threads-constraint>
+    <work-manager>
+      <name>osmAutomationWorkManager</name>
+      <target>OSM_MS1</target>
+      <max-threads-constraint>osmAutomationMaxThreadConstraint</max-threads-constraint>
+      <ignore-stuck-threads>false</ignore-stuck-threads>
+    </work-manager>
+    <work-manager>
+      <name>osmXmlWorkManager</name>
+      <target>OSM_MS1</target>
+      <max-threads-constraint>osmHttpApiMaxThreadConstraint</max-threads-constraint>
+      <ignore-stuck-threads>false</ignore-stuck-threads>
+    </work-manager>
+    <work-manager>
+      <name>osmTaskClientWorkManager</name>
+      <target>OSM_MS1</target>
+      <min-threads-constraint>osmGuiMinThreadConstraint</min-threads-constraint>
+      <max-threads-constraint>osmGuiMaxThreadConstraint</max-threads-constraint>
+      <ignore-stuck-threads>false</ignore-stuck-threads>
+    </work-manager>
+    <work-manager>
+      <name>osmWsJmsWorkManager</name>
+      <target>OSM_MS1</target>
+      <max-threads-constraint>osmJmsApiMaxThreadConstraint</max-threads-constraint>
+      <ignore-stuck-threads>false</ignore-stuck-threads>
+    </work-manager>
+    <work-manager>
+      <name>osmWsHttpWorkManager</name>
+      <target>OSM_MS1</target>
+      <max-threads-constraint>osmHttpApiMaxThreadConstraint</max-threads-constraint>
+      <ignore-stuck-threads>false</ignore-stuck-threads>
+    </work-manager>
+    <work-manager>
+      <name>osmOmClientWorkManager</name>
+      <target>OSM_MS1</target>
+      <min-threads-constraint>osmGuiMinThreadConstraint</min-threads-constraint>
+      <max-threads-constraint>osmGuiMaxThreadConstraint</max-threads-constraint>
+      <ignore-stuck-threads>false</ignore-stuck-threads>
+    </work-manager>
+
+OSM_MS1 and ASAP_MS1
+
+    <log>
+      <number-of-files-limited>true</number-of-files-limited>
+      <file-count>3</file-count>
+      <rotate-log-on-startup>true</rotate-log-on-startup>
+    </log>
+
+Domain log broadcaster off as well for OSM_MS1 and ASAP_MS1
+
+net.core.wmem_max=2096304
+
+DONE
